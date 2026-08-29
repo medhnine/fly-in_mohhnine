@@ -240,6 +240,11 @@ def main():
         drones = graph.assign_paths(paths)
         count = 1
         while not graph.is_all_arrived(drones):
+            for key, value in graph.connection.items():
+                value.usage = 0
+            for drone in drones:
+                if drone.in_connection is not None:
+                    drone.in_connection.usage += 1
             dr_left = [d for d in drones if d.arrived is False]
             sr_drones = sorted(dr_left, key=lambda d: d.step, reverse=True)
             print(f"turn {count}")
@@ -257,8 +262,6 @@ def main():
                         print(f"usage = {connection.usage}")
                         moved =  True
                         drone.step += 1
-            for key, value in graph.connection.items():
-                value.usage = 0
             if moved is False:
                 print("deadlock")
                 return

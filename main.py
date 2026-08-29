@@ -8,6 +8,7 @@ class Zone:
         self.max_drones = max_drones
         self.neighbors = []
         self.drones_in = 0
+        self.reserved = 0
 
     @property
     def cost(self) -> int:
@@ -33,6 +34,7 @@ class Drone:
         self.id = id
         self.path = path
         self.step = 0
+        self.in_connection : Connection | None = None
 
     @property
     def arrived(self):
