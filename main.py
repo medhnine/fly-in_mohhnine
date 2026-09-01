@@ -11,10 +11,10 @@ class Zone:
         self.reserved = 0
 
     @property
-    def cost(self) -> int:
+    def cost(self) -> float:
         if self.zone_type == "restricted":
-            return 2
-        return 1
+            return 2.0
+        return 1.0
 
     def set_default(self):
         if self.color is None:
@@ -23,9 +23,9 @@ class Zone:
             self.max_drones = 1
         if self.zone_type is None:
             self.zone_type = "normal"
-    
-    def has_plsce(self):
-        if self.drones_in < self.max_drones:
+    @property
+    def has_place(self):
+        if self.drones_in + self.reserved < self.max_drones:
             return True
         return False
 
@@ -83,7 +83,7 @@ class Graph:
         store = {}
         id = 1
         for index, path in enumerate(paths):
-            store[index] = [len(path) - 1, 0]
+            store[index] = [sum(zone.cost for zone in path[1:]), 0]
         while(id <= self.nb_drones):
             small = float("inf")
             chosen = 0
@@ -106,42 +106,30 @@ class Graph:
 
     def get_connection(self, zone1, zone2):
         return self.connection[tuple(sorted([zone1.name, zone2.name]))]
-    
-    # def highest_step(self, drones):
-    #     high = 0
-    #     drone_id = 1
-    #     for drone in drones:
-    #         if drone.step > high and not drone.arrived:
-    #             high = drone.step
-    #             drone_id = drone.id
-    #     return drone_id
-    
-    # def lowest_step(self, drones):
-    #     lowest = float(inf)
-    #     for drone in drones:
-    #         if drone.step < lowest and not drone.arrived:
-    #             lowest = drone.step
-    #     return lowest
-
-
 
     def find_path(self, blocked : set["Zone"] | None):
         if self.start is None or self.end is None:
             raise ValueError("start or end missing")
-        dist: dict["Zone", float] = {}
+        dist: dict["Zone", tuple[float, int]] = {}
         visited: set["Zone"] = set()
         parent: dict["Zone", "Zone | None"] = {}
         for zone in self.zones.values():
-            dist[zone] = float("inf")
+            dist[zone] = (float("inf"), 0)
             parent[zone] = None
-        dist[self.start] = 0
+        dist[self.start] = (0, 0)
         while True:
-            lowest = float("inf")
+            lowest : tuple = (float("inf"), 0)
             current = None
             for cheap in self.zones.values():
-                if cheap not in visited and cheap not in blocked and dist[cheap] < lowest:
-                    lowest = dist[cheap]
-                    current = cheap
+                if cheap.zone_type == "blocked" and blocked:
+                    blocked.add(cheap)
+                if cheap not in visited and cheap not in blocked:
+                    if dist[cheap] < lowest:
+                        lowest = dist[cheap]
+                        current = cheap
+                    # elif dist[cheap] == lowest and cheap.zone_type == "priority":
+                    #     lowest = dist[cheap]
+                    #     current = cheap
             if current is None:
                 return None
             if current is self.end:
@@ -154,10 +142,32 @@ class Graph:
             visited.add(current)
             for n in neighbors:
                 if n not in visited and n not in blocked:
-                    new_cost = dist[current] + n.cost
-                    if new_cost < dist[n]:
-                        dist[n] = new_cost
+                    cost_vlaue = n.cost
+                    new_cost = dist[current][0] + cost_vlaue
+                    new_priority = dist[current][1]
+                    if n.zone_type == "priority":
+                        new_priority -= 1
+                    new_dist = (new_cost, new_priority)
+                    if new_dist < dist[n]:
+                        dist[n] = new_dist
                         parent[n] = current
+
+    def sort_paths_priority(self, paths):
+        new_path : list[dict[list, int]] = []
+        for path in paths:
+            count = 0
+            for zone in path:
+                if zone.zone_type == "priority":
+                    count += 1
+            p = {path : count}
+            new_path.append(p)
+        result = sorted(new_path, key=lambda p : new_path[p])
+        print(result)
+        paths = []
+        for key in result.items():
+            paths.append(key)
+        return paths
+
 
 class Connection:
     def __init__(self, zone1, zone2, max_link_capacity):
@@ -165,6 +175,12 @@ class Connection:
         self.zone2 = zone2
         self.max_link_capacity = max_link_capacity
         self.usage = 0
+    
+    @property
+    def check_capacity(self):
+        if self.usage < self.max_link_capacity:
+            return True
+        return False
 
 
 

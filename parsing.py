@@ -212,7 +212,7 @@ class Parse:
         return zones
 
 def main():
-    try:
+    # try:
         obj = Parse('/home/mohhnine/Desktop/fly-in/maps/easy/03_basic_capacity.txt')
         graph = Graph(2)
         zones = obj.parse(graph)
@@ -234,11 +234,17 @@ def main():
             # blocked.add(block)
             # 
             # list = 1 2 3 
-
         for z in zones:
             print(f"the number drones in zone {z.name} is: {z.drones_in}")
+        print(len(paths))
+        # paths = graph.sort_paths_priority(paths)
+        for p in paths:
+            print("path:")
+            for z in p:
+                print(f"zone = {z.name} priority is {z.zone_type}")
         drones = graph.assign_paths(paths)
         count = 1
+        graph.end.max_drones = float("inf")
         while not graph.is_all_arrived(drones):
             for key, value in graph.connection.items():
                 value.usage = 0
@@ -247,27 +253,54 @@ def main():
                     drone.in_connection.usage += 1
             dr_left = [d for d in drones if d.arrived is False]
             sr_drones = sorted(dr_left, key=lambda d: d.step, reverse=True)
-            print(f"turn {count}")
+            print(f"turn {count}\n")
+            moves = []
             moved = False
             for drone in sr_drones:
                 current_zone = drone.current_zone
                 next_zone = drone.next_zone
                 if next_zone is not None:
                     connection = graph.get_connection(current_zone, next_zone)
-                    if next_zone.has_plsce() and connection.usage < connection.max_link_capacity:
+                    if drone.in_connection is not None:
+                        next_zone.drones_in += 1
+                        next_zone.reserved -= 1
+                        drone.step += 1
+                        drone.in_connection = None
+                        moves.append(f"D{drone.id}-{next_zone.name}")
+                        moved = True
+                        continue
+
+                    # print(f"zone type : {next_zone.zone_type}")
+                    if next_zone.zone_type == "restricted":
+                        if next_zone.has_place and connection.check_capacity:
+                            drone.in_connection = connection
+                            moves.append(f"D{drone.id}-{current_zone.name}-{next_zone.name}")
+                            connection.usage += 1
+                            current_zone.drones_in -= 1
+                            next_zone.reserved += 1
+                            moved = True
+                    
+                    elif next_zone.has_place and connection.check_capacity:
                         next_zone.drones_in += 1
                         current_zone.drones_in -= 1
-                        print(f"{drone.id} from {current_zone.name} moves to {next_zone.name}")
+                        moves.append(f"D{drone.id}-{next_zone.name}")
                         connection.usage += 1
-                        print(f"usage = {connection.usage}")
                         moved =  True
                         drone.step += 1
+
             if moved is False:
                 print("deadlock")
                 return
+            print(" ".join(moves))
             count += 1
         for z in zones:
             print(f"the number drones in zone {z.name} is: {z.drones_in}")
+
+        #   for drone in drones:
+        #         if drone.in_connection is not None:
+        #             drone.in_connection.usage += 1
+
+                    
         # for dr in drones:
         #     print()
         #     print(f"{dr.id} is arrived: {dr.arrived}")
@@ -285,6 +318,6 @@ def main():
         #         print(z.name)
         #     print("------")
         # print(dic)
-    except Exception as e:
-        print(f"opps {e}")
+    # except Exception as e:
+    #     print(f"opps {e}")
 main()
