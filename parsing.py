@@ -9,6 +9,12 @@ class Parse:
         try:
             with open(self.path, "r") as f:
                 result = f.readlines()
+            data_file = ""
+            for line in result:
+                res = "".join(line)
+                data_file += res + '\n'
+            with open("/home/mohhnine/Desktop/fly-in/vis_data.txt", "w") as file:
+                file.write(data_file)
         except FileNotFoundError as e:
             raise ValueError(f"file not found {e}")
         except PermissionError as e:
@@ -213,14 +219,14 @@ class Parse:
 
 def main():
     # try:
-        obj = Parse('/home/mohhnine/Desktop/fly-in/maps/easy/03_basic_capacity.txt')
+        obj = Parse('/home/mohhnine/Desktop/fly-in/maps/challenger/01_the_impossible_dream.txt')
         graph = Graph(2)
         zones = obj.parse(graph)
         dic: dict = {}
         res = []
         blocked: set["Zone"] = set()
         paths = []
-
+        max_paths = 2
         while res is not None:
             res = graph.find_path(blocked)
             if res is None:
@@ -229,22 +235,23 @@ def main():
             block = res[1:-1]
             for zone in block:
                 blocked.add(zone)
-            # blocked = {zone for zone in block if zone}
-            # print(blocked)
-            # blocked.add(block)
-            # 
-            # list = 1 2 3 
-        for z in zones:
-            print(f"the number drones in zone {z.name} is: {z.drones_in}")
-        print(len(paths))
-        # paths = graph.sort_paths_priority(paths)
-        for p in paths:
-            print("path:")
-            for z in p:
-                print(f"zone = {z.name} priority is {z.zone_type}")
+            if max_paths == 1:
+                break
+            max_paths -=1
+            
+
+        # for z in zones:
+        #     print(f"the number drones in zone {z.name} is: {z.drones_in}")
+        # print(len(paths))
+
+        # for p in paths:
+        #     print("path:")
+        #     for z in p:
+        #         print(f"zone = {z.name} priority is {z.zone_type}")
         drones = graph.assign_paths(paths)
         count = 1
         graph.end.max_drones = float("inf")
+        data = ""
         while not graph.is_all_arrived(drones):
             for key, value in graph.connection.items():
                 value.usage = 0
@@ -270,7 +277,6 @@ def main():
                         moved = True
                         continue
 
-                    # print(f"zone type : {next_zone.zone_type}")
                     if next_zone.zone_type == "restricted":
                         if next_zone.has_place and connection.check_capacity:
                             drone.in_connection = connection
@@ -292,32 +298,14 @@ def main():
                 print("deadlock")
                 return
             print(" ".join(moves))
+            res = " ".join(moves)
+            data += res + '\n'
             count += 1
-        for z in zones:
-            print(f"the number drones in zone {z.name} is: {z.drones_in}")
+        # for z in zones:
+        #     print(f"the number drones in zone {z.name} is: {z.drones_in}")
+        with open("/home/mohhnine/Desktop/fly-in/vis_data.txt", "a") as file:
+            file.write(data)
 
-        #   for drone in drones:
-        #         if drone.in_connection is not None:
-        #             drone.in_connection.usage += 1
-
-                    
-        # for dr in drones:
-        #     print()
-        #     print(f"{dr.id} is arrived: {dr.arrived}")
-        #     print()
-        #     for i in dr.path:
-        #         print(f"dr id = {dr.id}, zone name: {i.name}")
-        #     print("next path:")
-        # for path in paths:
-        #     for zone in path:
-        #         print(f" zone: {zone.name}")
-        # for zone in zones:
-        #     dic[zone.name] = zone
-        #     print(f"zone {zone.name} nieghbors {[x.name for x in zone.neighbors]}:")
-        #     for z in zone.neighbors:
-        #         print(z.name)
-        #     print("------")
-        # print(dic)
     # except Exception as e:
     #     print(f"opps {e}")
 main()

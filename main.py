@@ -77,7 +77,6 @@ class Graph:
         items : tuple[str, str] = (name1, name2)
         self.connection[tuple(sorted(items))] = Connection(zone1, zone2, max_link_capacity)
 
-    
     def assign_paths(self, paths):
         drones : list["Drone"] = []
         store = {}
@@ -107,12 +106,14 @@ class Graph:
     def get_connection(self, zone1, zone2):
         return self.connection[tuple(sorted([zone1.name, zone2.name]))]
 
-    def find_path(self, blocked : set["Zone"] | None):
+    def find_path(self, in_path : set["Zone"] | None):
         if self.start is None or self.end is None:
             raise ValueError("start or end missing")
+        
         dist: dict["Zone", tuple[float, int]] = {}
         visited: set["Zone"] = set()
         parent: dict["Zone", "Zone | None"] = {}
+        blocked : set = ()
         for zone in self.zones.values():
             dist[zone] = (float("inf"), 0)
             parent[zone] = None
@@ -121,15 +122,13 @@ class Graph:
             lowest : tuple = (float("inf"), 0)
             current = None
             for cheap in self.zones.values():
-                if cheap.zone_type == "blocked" and blocked:
+                if cheap.zone_type == "blocked":
                     blocked.add(cheap)
                 if cheap not in visited and cheap not in blocked:
                     if dist[cheap] < lowest:
                         lowest = dist[cheap]
                         current = cheap
-                    # elif dist[cheap] == lowest and cheap.zone_type == "priority":
-                    #     lowest = dist[cheap]
-                    #     current = cheap
+           
             if current is None:
                 return None
             if current is self.end:
@@ -147,6 +146,8 @@ class Graph:
                     new_priority = dist[current][1]
                     if n.zone_type == "priority":
                         new_priority -= 1
+                    if current in in_path:
+                        new_cost += 1
                     new_dist = (new_cost, new_priority)
                     if new_dist < dist[n]:
                         dist[n] = new_dist
@@ -167,7 +168,6 @@ class Graph:
         for key in result.items():
             paths.append(key)
         return paths
-
 
 class Connection:
     def __init__(self, zone1, zone2, max_link_capacity):
