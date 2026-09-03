@@ -54,7 +54,7 @@ class Drone:
 
 class Graph:
     def __init__(self, nb_drones: int):
-        self.nb_drones = nb_drones
+        self.nb_drones = None
         self.zones : dict[str, Zone] = {}
         self.start: Zone | None = None
         self.end: Zone | None = None
@@ -90,11 +90,11 @@ class Graph:
                 if small > value[0] + value[1]:
                     small = value[0] + value[1]
                     chosen = key
-            drone = Drone(id, paths[chosen])
-            store[chosen][1] += 1
-            drones.append(drone)
+            if chosen <= len(paths) - 1:
+                drone = Drone(id, paths[chosen])
+                store[chosen][1] += 1
+                drones.append(drone)
             id += 1
-        print(store)
         return drones
 
     def is_all_arrived(self, drones):
@@ -109,11 +109,11 @@ class Graph:
     def find_path(self, in_path : set["Zone"] | None):
         if self.start is None or self.end is None:
             raise ValueError("start or end missing")
-        
+
         dist: dict["Zone", tuple[float, int]] = {}
         visited: set["Zone"] = set()
         parent: dict["Zone", "Zone | None"] = {}
-        blocked : set = ()
+        blocked : set["Zone"] = {zone for zone in self.zones.values() if zone.zone_type == "blocked"}
         for zone in self.zones.values():
             dist[zone] = (float("inf"), 0)
             parent[zone] = None
@@ -122,13 +122,11 @@ class Graph:
             lowest : tuple = (float("inf"), 0)
             current = None
             for cheap in self.zones.values():
-                if cheap.zone_type == "blocked":
-                    blocked.add(cheap)
                 if cheap not in visited and cheap not in blocked:
                     if dist[cheap] < lowest:
                         lowest = dist[cheap]
                         current = cheap
-           
+
             if current is None:
                 return None
             if current is self.end:
@@ -182,74 +180,3 @@ class Connection:
             return True
         return False
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # dist[self.start] = 0
-        # current = None
-        # best = float("inf")
-        # parent[self.start] = None
-        # while True:
-        #     for cheap in self.zones.values():
-        #         if cheap not in visited and dist[cheap] < best:
-        #             best = dist[cheap]
-        #             current = cheap
-        #     if current is None:
-        #         return None
-        #     print(f"cheap {current.name}")
-        #     neighbors = current.neighbors
-        #     visited.add(current)
-        #     for n in neighbors:
-        #         if n not in visited:
-        #             print(f"neighbor {n.name}")
-        #             new_cost = dist[current] + n.cost
-        #             print(f"new cost {new_cost}")
-        #             print(f"dist {dist[n]}")
-        #             if new_cost < dist[n]:
-        #                 dist[n] = new_cost
-        #                 parent[n] = current
-        #                 if parent[current] is not None:
-        #                     print(f"in {parent[current].name} came from {parent[n].name}")
-        #         if n.name == self.end.name:
-        #             # parent[self.end] = n
-        #             print(f"in {parent[current].name} came from {parent[self.end].name}")
-        #             x = self.end
-        #             path = []
-        #             # while parent[x] != None:
-        #             #     x = parent[x]
-        #             #     print(x.name)
-        #             #     path.append(x)
-        #             return path[:-1]
-
-            
-
-def main():
-    from parsing import Parse
-    obj = Parse('/home/mohhnine/Desktop/fly-in/maps/medium/01_dead_end_trap.txt')
-    graph = Graph(2)
-    zones = obj.parse(graph)
-    s = "#  start_hub: start 0 0 [color=green]"
-    s = s.strip()
-    print(s)
-    # print('fly-in')
-
-if __name__ == '__main__':
-    main()
