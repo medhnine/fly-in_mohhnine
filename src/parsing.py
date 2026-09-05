@@ -268,10 +268,10 @@ class Parse:
         end_hub = False
         nb_line = 1
         filtered_data = [
-            line.strip()
+            line.split("#", 1)[0].strip()
             for line in data
             if not (
-                line.startswith("#")
+                line.strip().startswith("#")
                 or line.startswith("\n")
                 or line == ""
             )

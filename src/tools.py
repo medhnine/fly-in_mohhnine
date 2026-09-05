@@ -103,6 +103,8 @@ class Graph:
             if max_paths == 1:
                 break
             max_paths -= 1
+        if len(paths) <= 0:
+            raise ValueError("There is no path for this map")
         return paths
 
     def assign_paths(self, paths):
