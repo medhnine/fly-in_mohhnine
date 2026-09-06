@@ -3,8 +3,8 @@ from parsing import Parse
 from visualizer import ColoredTerminal
 
 class Simulator:
-    def __init__(self):
-        pass
+    def __init__(self, visual):
+        self.visual = visual
 
     def Simulation(self, path):
         parser = Parse(path)
@@ -17,7 +17,8 @@ class Simulator:
         data = ""
         turn = 1
         while not graph.is_all_arrived(drones):
-            visualization.display_colored_info(graph, drones, turn)
+            if self.visual:
+                visualization.display_colored_info(graph, drones, turn)
             for key, value in graph.connection.items():
                 value.usage = 0
             for drone in drones:
@@ -65,10 +66,9 @@ class Simulator:
             if moved is False:
                 print("deadlock")
                 return
-            print("\nMOVMENTS:\n")
             print(" ".join(moves))
             res = " ".join(moves)
             data += res + '\n'
             count += 1
-        with open("/home/mohhnine/Desktop/fly-in/src/vis_data.txt", "a") as file:
+        with open("/home/mohhnine/Desktop/fly-in/vis_data.txt", "a") as file:
             file.write(data)

@@ -44,3 +44,4 @@ class ColoredTerminal:
                         print("\nIN TRANSIT:\n")
                         in_transit = False
                     print(f"D{drone.id} {self.color_zone(drone.current_zone)} -> {self.color_zone(drone.next_zone)}")
+            print("\nMOVMENTS:\n")

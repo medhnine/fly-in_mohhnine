@@ -20,8 +20,6 @@ class Zone:
         return 1.0
 
     def set_default(self):
-        if self.color is None:
-            self.color = "yellow"
         if self.max_drones is None:
             self.max_drones = 1
         if self.zone_type is None:
