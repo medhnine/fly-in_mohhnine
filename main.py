@@ -7,7 +7,7 @@ def main():
             raise ValueError("error: Usage: python3 main.py <map_file> [--visual]")
         visual = False
         if len(sys.argv) > 2 and "--visual" == sys.argv[2]:
-            visual = "--visual" == sys.argv[2]
+            visual = True
         path = sys.argv[1]
         sim = Simulator(visual)
         sim.Simulation(path)

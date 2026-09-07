@@ -13,15 +13,16 @@ class Parse:
         start_hub = False
         end_hub = False
         nb_line = 1
-        filtered_data = [
-            line.split("#", 1)[0].strip()
-            for line in data
+        filtered_data = []
+
+        for line in data:
             if not (
                 line.strip().startswith("#")
                 or line.startswith("\n")
                 or line == ""
-            )
-        ]
+            ):
+                filtered_data.append(line.split("#", 1)[0].strip())
+
         for line in filtered_data:
             if line.startswith("nb_drones:"):
                 if graph.nb_drones is not None:
@@ -32,7 +33,7 @@ class Parse:
                 self.handle_drones(line, graph, nb_line)
             elif line.startswith("start_hub:"):
                 if start_hub:
-                    raise ValueError("duplicated zone start_hub")
+                    raise ValueError(f"error in line {nb_line}: duplicated zone start_hub")
                 hub_info = self.hub_manger(graph, line, nb_line)
                 hub = Zone(
                     hub_info["name"],
@@ -65,7 +66,7 @@ class Parse:
                 count += 1
             elif line.startswith("end_hub:"):
                 if end_hub:
-                    raise ValueError("duplicated zone end_hub")
+                    raise ValueError(f"error in line {nb_line}: duplicated zone end_hub")
                 hub_info = self.hub_manger(graph, line, nb_line)
                 hub = Zone(
                     hub_info["name"],
@@ -89,7 +90,7 @@ class Parse:
                     nb_line,
                 )
             else:
-                raise ValueError("unvalid data line")
+                raise ValueError(f"error in line {nb_line}: unvalid data line ")
             nb_line += 1
         if not start_hub or not end_hub:
             raise ValueError(
@@ -150,6 +151,7 @@ class Parse:
 
     def hub_manger(self, graph: Graph, data: str, nb_line):
         info = {}
+        line = data
         if graph.nb_drones is None:
             raise ValueError(
                 f"error in line {nb_line}: "
@@ -200,7 +202,7 @@ class Parse:
                 else:
                     store += data[i]
             if "[" in data[3]:
-                self.valid_meta(store, info, nb_line)
+                self.valid_meta(store, info, nb_line, line)
             else:
                 raise ValueError(
                     f"error in line {nb_line}: unvlaid metadata"
@@ -212,7 +214,7 @@ class Parse:
         return info
 
 
-    def valid_meta(self, meta_d, info, nb_line):
+    def valid_meta(self, meta_d, info, nb_line, line):
         info["zone_type"] = None
         info["color"] = None
         info["max_drones"] = None
@@ -264,7 +266,8 @@ class Parse:
                                 "duplicated max_drones in meta data"
                             )
                         info["max_drones"] = int(res[1])
-                        if info["max_drones"] <= 0:
+                        print(line)
+                        if info["max_drones"] <= 0 and  line.startswith("start_hub:") is False:
                             raise ValueError(
                                 f"error in line {nb_line}: "
                                 "enter valid nb_max_drones >= 1"

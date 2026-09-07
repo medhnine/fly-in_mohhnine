@@ -12,18 +12,34 @@ class ColoredTerminal:
             "cyan": "\033[36m",
             "white": "\033[37m",
 
-            # fake colors , if the user request them, defualt terminal color for unknown color
-            "gold": "\033[33m",
-            "orange": "\033[33m",
-            "brown": "\033[33m",
-            "maroon": "\033[31m",
-            "darkred": "\033[31m",
-            "crimson": "\033[31m",
-            "violet": "\033[35m",
+            "gray": "\033[90m",
+            "grey": "\033[90m",
+
+            "orange": "\033[38;5;208m",
+            "gold": "\033[38;5;220m",
+            "brown": "\033[38;5;94m",
+            "pink": "\033[38;5;205m",
+            "violet": "\033[38;5;177m",
+
+            "maroon": "\033[38;5;88m",
+            "crimson": "\033[38;5;160m",
+
+            "lime": "\033[38;5;118m",
+            "olive": "\033[38;5;100m",
+
+            "navy": "\033[38;5;17m",
+            "teal": "\033[38;5;30m",
+            "aqua": "\033[38;5;51m",
+
+            "indigo": "\033[38;5;54m",
+            "turquoise": "\033[38;5;44m",
+            "beige": "\033[38;5;230m",
         }
 
         def color_zone(self, zone) -> str:
             color = self.COLORS.get(zone.color, "")
+            if color == "":
+                color = "\033[31m"
             return f"{color}{zone.name}{self.RESET}"
 
         def display_colored_info(self, graph, drones, turn):
