@@ -266,7 +266,6 @@ class Parse:
                                 "duplicated max_drones in meta data"
                             )
                         info["max_drones"] = int(res[1])
-                        print(line)
                         if info["max_drones"] <= 0 and  line.startswith("start_hub:") is False:
                             raise ValueError(
                                 f"error in line {nb_line}: "

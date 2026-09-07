@@ -2,7 +2,7 @@
 
 nb_drones: 2
 
-start_hub: start 0 0 [max_drones=-5 color=gray]
+start_hub: start 0 0 [max_drones=5 color=gray]
 
 hub: waypoint1 2 0 [color=blue]
 
