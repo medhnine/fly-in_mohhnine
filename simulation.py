@@ -8,7 +8,7 @@ class Simulator:
 
     def Simulation(self, path):
         parser = Parse(path)
-        graph = Graph(2)
+        graph = Graph()
         parser.parse(graph)
         visualization = ColoredTerminal()
         paths = graph.mutiple_path()

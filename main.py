@@ -1,10 +1,17 @@
-from simulation import Simulator
+"""Command-line entry point for the Fly-in simulation."""
+
 import sys
 
-def main():
+from simulation import Simulator
+
+
+def main() -> None:
+    """Parse command-line arguments and run the simulation."""
     try:
         if len(sys.argv) < 2:
-            raise ValueError("error: Usage: python3 main.py <map_file> [--visual]")
+            raise ValueError(
+                "error: Usage: python3 main.py <map_file> [--visual]"
+            )
         visual = False
         if len(sys.argv) > 2 and "--visual" == sys.argv[2]:
             visual = True
@@ -13,6 +20,7 @@ def main():
         sim.Simulation(path)
     except Exception as e:
         print(f"opps {e}")
+
 
 if __name__ == "__main__":
     main()
