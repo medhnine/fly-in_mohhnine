@@ -4,7 +4,7 @@ install:
 	pip install -r requirements.txt
 
 run:
-	python3 main.py
+	python3 main.py maps/easy/01_linear_path.txt --visual
 
 debug:
 	python3 -m pdb main.py

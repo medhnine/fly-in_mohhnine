@@ -1,29 +1,41 @@
+"""Input-file parser for the Fly-in drone simulation."""
+
+from typing import cast
+
 from tools import Graph, Zone
 
+
 class Parse:
-    def __init__(self, path):
+    """Parse a Fly-in map file and populate a graph."""
+
+    def __init__(self, path: str) -> None:
+        """Initialize the parser.
+
+        Args:
+            path: Path to the map file.
+        """
         self.path = path
-        self.zones_name = []
+        self.zones_name: list[str] = []
 
+    def parse(self, graph: Graph) -> list[Zone]:
+        """Parse the input file into the provided graph.
 
-    def parse(self, graph: Graph):
-        zones = []
+        Args:
+            graph: Graph to populate.
+
+        Returns:
+            Zones created while parsing the file.
+
+        Raises:
+            ValueError: If the input structure or values are invalid.
+        """
+        zones: list[Zone] = []
         data = self.read_file()
         count = 0
         start_hub = False
         end_hub = False
         nb_line = 1
-        filtered_data = []
-
         for line in data:
-            if not (
-                line.strip().startswith("#")
-                or line.startswith("\n")
-                or line == ""
-            ):
-                filtered_data.append(line.split("#", 1)[0].strip())
-
-        for line in filtered_data:
             if line.startswith("nb_drones:"):
                 if graph.nb_drones is not None:
                     raise ValueError(
@@ -33,18 +45,21 @@ class Parse:
                 self.handle_drones(line, graph, nb_line)
             elif line.startswith("start_hub:"):
                 if start_hub:
-                    raise ValueError(f"error in line {nb_line}: duplicated zone start_hub")
+                    raise ValueError(
+                        f"error in line {nb_line}: "
+                        "duplicated zone start_hub"
+                    )
                 hub_info = self.hub_manger(graph, line, nb_line)
                 hub = Zone(
-                    hub_info["name"],
-                    hub_info["x"],
-                    hub_info["y"],
-                    hub_info["color"],
-                    hub_info["zone_type"],
+                    cast(str, hub_info["name"]),
+                    cast(int, hub_info["x"]),
+                    cast(int, hub_info["y"]),
+                    cast(str | None, hub_info["color"]),
+                    cast(str | None, hub_info["zone_type"]),
                     float("inf"),
                 )
                 hub.set_default()
-                hub.drones_in = graph.nb_drones
+                hub.drones_in = cast(int, graph.nb_drones)
                 zones.append(hub)
                 graph.start = hub
                 graph.add_zone(hub)
@@ -53,12 +68,15 @@ class Parse:
             elif line.startswith("hub:"):
                 hub_info = self.hub_manger(graph, line, nb_line)
                 hub = Zone(
-                    hub_info["name"],
-                    hub_info["x"],
-                    hub_info["y"],
-                    hub_info["color"],
-                    hub_info["zone_type"],
-                    hub_info["max_drones"],
+                    cast(str, hub_info["name"]),
+                    cast(int, hub_info["x"]),
+                    cast(int, hub_info["y"]),
+                    cast(str | None, hub_info["color"]),
+                    cast(str | None, hub_info["zone_type"]),
+                    cast(
+                        int | float | None,
+                        hub_info["max_drones"],
+                    ),
                 )
                 hub.set_default()
                 graph.add_zone(hub)
@@ -66,14 +84,17 @@ class Parse:
                 count += 1
             elif line.startswith("end_hub:"):
                 if end_hub:
-                    raise ValueError(f"error in line {nb_line}: duplicated zone end_hub")
+                    raise ValueError(
+                        f"error in line {nb_line}: "
+                        "duplicated zone end_hub"
+                    )
                 hub_info = self.hub_manger(graph, line, nb_line)
                 hub = Zone(
-                    hub_info["name"],
-                    hub_info["x"],
-                    hub_info["y"],
-                    hub_info["color"],
-                    hub_info["zone_type"],
+                    cast(str, hub_info["name"]),
+                    cast(int, hub_info["x"]),
+                    cast(int, hub_info["y"]),
+                    cast(str | None, hub_info["color"]),
+                    cast(str | None, hub_info["zone_type"]),
                     float("inf"),
                 )
                 hub.set_default()
@@ -89,16 +110,30 @@ class Parse:
                     graph,
                     nb_line,
                 )
+            elif (
+                line.strip().startswith("#")
+                or line.startswith("\n")
+                or line == ""
+            ):
+                pass
             else:
-                raise ValueError(f"error in line {nb_line}: unvalid data line ")
+                raise ValueError(
+                    f"error in line {nb_line}: unvalid data line "
+                )
             nb_line += 1
         if not start_hub or not end_hub:
-            raise ValueError(
-                "start_hub or end_hub are not present"
-            )
+            raise ValueError("start_hub or end_hub are not present")
         return zones
 
-    def read_file(self):
+    def read_file(self) -> list[str]:
+        """Read the configured map file and visualization data.
+
+        Returns:
+            Raw lines read from the map file.
+
+        Raises:
+            ValueError: If the file cannot be read or written.
+        """
         try:
             with open(self.path, "r") as f:
                 result = f.readlines()
@@ -117,13 +152,25 @@ class Parse:
             raise ValueError(f"Permission diened {e}")
         return result
 
-
     def handle_drones(
         self,
         data: str,
         graph: Graph,
         line: int,
     ) -> Graph:
+        """Parse and store the number of drones.
+
+        Args:
+            data: Drone-count input line.
+            graph: Graph receiving the parsed drone count.
+            line: Current parser line number.
+
+        Returns:
+            The updated graph.
+
+        Raises:
+            ValueError: If the drone-count syntax or value is invalid.
+        """
         result = data.split(":", 1)
         if len(result) != 2:
             raise ValueError(
@@ -149,8 +196,26 @@ class Parse:
         graph.nb_drones = nb_drones
         return graph
 
-    def hub_manger(self, graph: Graph, data: str, nb_line):
-        info = {}
+    def hub_manger(
+        self,
+        graph: Graph,
+        data: str,
+        nb_line: int,
+    ) -> dict[str, object]:
+        """Parse one start, end, or regular hub definition.
+
+        Args:
+            graph: Graph associated with the parsed map.
+            data: Hub definition line.
+            nb_line: Current parser line number.
+
+        Returns:
+            Parsed hub information.
+
+        Raises:
+            ValueError: If the hub definition or metadata is invalid.
+        """
+        info: dict[str, object] = {}
         line = data
         if graph.nb_drones is None:
             raise ValueError(
@@ -176,9 +241,14 @@ class Parse:
                 f"error in line {nb_line}: "
                 "hub info must at least have: hub x y"
             )
-        if values[0] in self.zones_name or '-' in values[0] or ' ' in values[0]:
+        if (
+            values[0] in self.zones_name
+            or "-" in values[0]
+            or " " in values[0]
+        ):
             raise ValueError(
-                f"error in line {nb_line}: duplicated zone name or zone_name contain '-'"
+                f"error in line {nb_line}: duplicated zone name "
+                "or zone_name contain '-'"
             )
         self.zones_name.append(values[0])
         info["name"] = values[0]
@@ -195,13 +265,13 @@ class Parse:
             )
         if len(values) > 3:
             store = ""
-            data = [x for x in values if x != ""]
-            for i in range(3, len(data)):
+            data_values = [x for x in values if x != ""]
+            for i in range(3, len(data_values)):
                 if i > 3:
-                    store += " " + data[i].strip()
+                    store += " " + data_values[i].strip()
                 else:
-                    store += data[i]
-            if "[" in data[3]:
+                    store += data_values[i]
+            if "[" in data_values[3]:
                 self.valid_meta(store, info, nb_line, line)
             else:
                 raise ValueError(
@@ -213,8 +283,27 @@ class Parse:
             info["max_drones"] = None
         return info
 
+    def valid_meta(
+        self,
+        meta_d: str,
+        info: dict[str, object],
+        nb_line: int,
+        line: str,
+    ) -> bool:
+        """Validate and store zone metadata.
 
-    def valid_meta(self, meta_d, info, nb_line, line):
+        Args:
+            meta_d: Raw metadata block.
+            info: Hub-information dictionary to update.
+            nb_line: Current parser line number.
+            line: Original hub definition line.
+
+        Returns:
+            True when the metadata is accepted.
+
+        Raises:
+            ValueError: If metadata syntax or values are invalid.
+        """
         info["zone_type"] = None
         info["color"] = None
         info["max_drones"] = None
@@ -266,7 +355,12 @@ class Parse:
                                 "duplicated max_drones in meta data"
                             )
                         info["max_drones"] = int(res[1])
-                        if info["max_drones"] <= 0 and  line.startswith("start_hub:") is False:
+                        max_drones = cast(int, info["max_drones"])
+                        if (
+                            max_drones <= 0
+                            and line.startswith("start_hub:") is False
+                            and line.startswith("end_hub:") is False
+                        ):
                             raise ValueError(
                                 f"error in line {nb_line}: "
                                 "enter valid nb_max_drones >= 1"
@@ -289,8 +383,24 @@ class Parse:
                 )
         return True
 
+    def connection_handler(
+        self,
+        data: str,
+        count: int,
+        graph: Graph,
+        nb_line: int,
+    ) -> None:
+        """Parse and add one connection definition.
 
-    def connection_handler(self, data, count, graph: Graph, nb_line):
+        Args:
+            data: Connection definition line.
+            count: Number of hubs parsed so far.
+            graph: Graph receiving the connection.
+            nb_line: Current parser line number.
+
+        Raises:
+            ValueError: If the connection definition is invalid.
+        """
         if count < 2:
             raise ValueError(
                 f"error in line {nb_line}: unvalid structure "
@@ -303,18 +413,18 @@ class Parse:
                 "error unvalid connection"
             )
         connection = result[1].strip()
-        connection = connection.split(":", 1)
-        if len(connection) < 1 or connection[0] == "":
+        connection_parts = connection.split(":", 1)
+        if len(connection_parts) < 1 or connection_parts[0] == "":
             raise ValueError(
                 f"error in line {nb_line}: "
                 "error unvalid connection"
             )
-        elif "-" not in connection[0]:
+        elif "-" not in connection_parts[0]:
             raise ValueError(
                 f"error in line {nb_line}: "
                 "error unvalid connection"
             )
-        zones = connection[0].split("-", 1)
+        zones = connection_parts[0].split("-", 1)
         if len(zones) != 2 or zones[0] == "" or zones[1] == "":
             raise ValueError(
                 f"error in line {nb_line}: "
@@ -338,8 +448,8 @@ class Parse:
                 "error duplicated concetion: "
                 f"({zone_name1}->{zone_name2})"
             )
-        if len(connection) <= 2:
-            meta = connection[0].split(" ", 1)
+        if len(connection_parts) <= 2:
+            meta = connection_parts[0].split(" ", 1)
             if len(meta) == 2:
                 if "[" in meta[1]:
                     max_link_capacity = self.connection_meta(
@@ -358,8 +468,19 @@ class Parse:
             else:
                 graph.connect(zone_name1, zone_name2, 1)
 
+    def connection_meta(self, meta_d: str, nb_line: int) -> int:
+        """Parse connection capacity metadata.
 
-    def connection_meta(self, meta_d, nb_line):
+        Args:
+            meta_d: Raw connection metadata block.
+            nb_line: Current parser line number.
+
+        Returns:
+            Parsed positive connection capacity.
+
+        Raises:
+            ValueError: If metadata is malformed or non-positive.
+        """
         data = meta_d[1:len(meta_d) - 1]
         if not data:
             raise ValueError(
