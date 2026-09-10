@@ -1,4 +1,4 @@
-# Easy Level -01: Simple linear path
+#Easy Level -01: Simple linear path
 
 nb_drones: 2
 
