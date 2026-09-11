@@ -321,6 +321,9 @@ class Parse:
         ]
         for meta in result:
             res = meta.split("=")
+            # print(res)
+            if len(res[1]) == 0:
+                raise ValueError(f"error in line {nb_line}: unvalid metedata")
             if (
                 res[0] in ["zone", "color", "max_drones"]
                 and len(res) == 2
