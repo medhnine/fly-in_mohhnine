@@ -286,8 +286,7 @@ class Graph:
             visited.add(current)
             for n in neighbors:
                 if n not in visited and n not in blocked:
-                    cost_vlaue = n.cost
-                    new_cost = dist[current][0] + cost_vlaue
+                    new_cost = dist[current][0] + n.cost
                     new_priority = dist[current][1]
                     if n.zone_type == "priority":
                         new_priority -= 1

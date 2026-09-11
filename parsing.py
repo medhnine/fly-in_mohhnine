@@ -137,15 +137,6 @@ class Parse:
         try:
             with open(self.path, "r") as f:
                 result = f.readlines()
-            data_file = ""
-            for line in result:
-                res = "".join(line)
-                data_file += res + "\n"
-            with open(
-                "/home/mohhnine/Desktop/fly-in/vis_data.txt",
-                "w",
-            ) as file:
-                file.write(data_file)
         except FileNotFoundError as e:
             raise ValueError(f"file not found {e}")
         except PermissionError as e:
@@ -354,7 +345,13 @@ class Parse:
                                 f"error in line {nb_line}: "
                                 "duplicated max_drones in meta data"
                             )
-                        info["max_drones"] = int(res[1])
+                        if (
+                            line.startswith("start_hub:") is False
+                            and line.startswith("end_hub:") is False
+                        ):
+                            info["max_drones"] = int(res[1])
+                        else:
+                            info["max_drones"] = 5
                         max_drones = cast(int, info["max_drones"])
                         if (
                             max_drones <= 0
@@ -481,6 +478,10 @@ class Parse:
         Raises:
             ValueError: If metadata is malformed or non-positive.
         """
+        if meta_d[0] != "[" or meta_d[-1] != "]":
+            raise ValueError(
+                f"error in line {nb_line}: unvlid metadata/empty"
+            )
         data = meta_d[1:len(meta_d) - 1]
         if not data:
             raise ValueError(

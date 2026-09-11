@@ -29,7 +29,6 @@ class Simulator:
         paths = graph.mutiple_path()
         drones = graph.assign_paths(paths)
         count = 1
-        data = ""
         turn = 1
         while not graph.is_all_arrived(drones):
             if self.visual:
@@ -94,11 +93,4 @@ class Simulator:
                 print("deadlock")
                 return
             print(" ".join(moves))
-            res = " ".join(moves)
-            data += res + "\n"
             count += 1
-        with open(
-            "/home/mohhnine/Desktop/fly-in/vis_data.txt",
-            "a",
-        ) as file:
-            file.write(data)
