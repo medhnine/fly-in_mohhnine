@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import cast
 
 
 class Zone:
@@ -182,7 +182,7 @@ class Graph:
             if max_paths == 1:
                 break
             max_paths -= 1
-        if len(paths) <= 0:
+        if len(paths) == 0:
             raise ValueError("There is no path for this map")
         return paths
 
@@ -296,30 +296,6 @@ class Graph:
                     if new_dist < dist[n]:
                         dist[n] = new_dist
                         parent[n] = current
-
-    def sort_paths_priority(self, paths: Any) -> Any:
-        """Sort paths using the existing priority-count implementation.
-
-        Args:
-            paths: Paths to process.
-
-        Returns:
-            The value produced by the existing sorting implementation.
-        """
-        new_path: Any = []
-        for path in paths:
-            count = 0
-            for zone in path:
-                if zone.zone_type == "priority":
-                    count += 1
-            p = {path: count}
-            new_path.append(p)
-        result: Any = sorted(new_path, key=lambda p: new_path[p])
-        print(result)
-        paths = []
-        for key in result.items():
-            paths.append(key)
-        return paths
 
 
 class Connection:

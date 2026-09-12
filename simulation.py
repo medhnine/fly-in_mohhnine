@@ -28,7 +28,6 @@ class Simulator:
         visualization = ColoredTerminal()
         paths = graph.mutiple_path()
         drones = graph.assign_paths(paths)
-        count = 1
         turn = 1
         while not graph.is_all_arrived(drones):
             if self.visual:
@@ -93,4 +92,3 @@ class Simulator:
                 print("deadlock")
                 return
             print(" ".join(moves))
-            count += 1
